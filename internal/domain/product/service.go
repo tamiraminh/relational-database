@@ -12,7 +12,7 @@ type ProductService interface {
 	Create(requestFormat ProductRequestFormat) (product Product, err error)
 	Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error)
 	SoftDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
-
+	HardDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
 
 }
 
@@ -88,5 +88,30 @@ func (s *ProductServiceImpl) SoftDelete(id uuid.UUID, userID uuid.UUID) (product
 	}
 
 	err = s.ProductRepository.Update(product)
+	
+
+	return
+}
+
+
+func (s *ProductServiceImpl) HardDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error) {
+	product, err = s.ProductRepository.ResolveByID(id)
+	if err != nil {
+		return
+	}
+
+	variants, err := s.ProductRepository.ResolveVariantsByProductIDs([]uuid.UUID{product.Id})
+	if err != nil {
+		return product, err
+	}
+
+	product.AttachVariants(variants)
+
+
+	err = s.ProductRepository.HardDelete(id)
+	if err != nil {
+		return product, failure.BadRequest(err)
+	}
+
 	return
 }

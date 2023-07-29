@@ -31,6 +31,7 @@ func (h *ProductHandler) Router(r chi.Router) {
 		r.Post("/", h.CreateProduct)
 		r.Put("/{id}", h.UpdateProduct)
 		r.Delete("/", h.SoftDeleteProduct)
+		r.Delete("/hard", h.HardDeleteProduct)
 
 
 	})
@@ -103,6 +104,31 @@ func (h *ProductHandler) SoftDeleteProduct(w http.ResponseWriter, r *http.Reques
 
 
 	foo, err := h.ProductService.SoftDelete(id, userId)
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	response.WithJSON(w, http.StatusOK, foo)
+}
+
+
+func (h *ProductHandler) HardDeleteProduct(w http.ResponseWriter, r *http.Request) {
+	idString := r.URL.Query().Get("id")
+	userIdString := r.URL.Query().Get("userId")
+	id, err := uuid.FromString(idString)
+	if err != nil {
+		response.WithError(w, failure.BadRequest(err))
+		return
+	}
+	userId, err := uuid.FromString(userIdString)
+	if err != nil {
+		response.WithError(w, failure.BadRequest(err))
+		return
+	}
+
+
+	foo, err := h.ProductService.HardDelete(id, userId)
 	if err != nil {
 		response.WithError(w, err)
 		return

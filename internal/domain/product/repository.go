@@ -115,8 +115,7 @@ var (
 type ProductRepository interface {
 	Create(product Product) (err error)
 	Update(product Product) (err error)
-	// SoftDelete(id uuid.UUID) (err error)
-	// HardDelete(id uuid.UUID) (err error)
+	HardDelete(id uuid.UUID) (err error)
 	// ReadProduct() ( products []Product, err error)
 	ResolveByID(id uuid.UUID) (product Product, err error)
 	ExistsByID(id uuid.UUID) (exists bool, err error)
@@ -348,4 +347,38 @@ func (r *ProductRepositoryMySQL) ResolveVariantsByProductIDs(ids []uuid.UUID) (v
 	return
 }
 
+func (r *ProductRepositoryMySQL) HardDelete(id uuid.UUID) (err error) {
+	exists, err := r.ExistsByID(id)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
 
+	if !exists {
+		err = failure.NotFound("product")
+		logger.ErrorWithStack(err)
+		return
+	}
+
+
+	return r.DB.WithTransaction(func(tx *sqlx.Tx, e chan error) {
+		if err := r.txDeleteVariants(tx, id); err != nil {
+			e <- err
+			return
+		}
+
+		if err := r.txDeleteProduct(tx, id); err != nil {
+			e <- err
+			return
+		}
+
+
+		e <- nil
+	})
+}
+
+
+func (r *ProductRepositoryMySQL) txDeleteProduct(tx *sqlx.Tx, productId uuid.UUID) (err error) {
+	_, err = tx.Exec("DELETE FROM product WHERE id  = ?", productId.String())
+	return
+}
