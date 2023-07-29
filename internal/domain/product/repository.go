@@ -127,6 +127,7 @@ type ProductRepository interface {
 	ResolveByID(id uuid.UUID) (product Product, err error)
 	ExistsByID(id uuid.UUID) (exists bool, err error)
 	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
+	ReadPagination(limit int, offset int) (products []Product, err error)
 }
 
 
@@ -237,6 +238,18 @@ func (r *ProductRepositoryMySQL) Update(product Product) (err error) {
 
 		e <- nil
 	})
+}
+
+func (r *ProductRepositoryMySQL) ReadPagination(limit int, page int) (products []Product, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		productQueries.selectProduct+" 	LIMIT ? OFFSET ?", limit, page*limit)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
 }
 
 

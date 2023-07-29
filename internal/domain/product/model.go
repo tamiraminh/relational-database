@@ -14,7 +14,7 @@ type Product struct {
 	Id   			uuid.UUID		`db:"id"`
 	BrandId 		uuid.UUID		`db:"brandId"`
 	Name			string	 		`db:"name"`
-	Stock			int	 		`db:"stock"`
+	Stock			int	 			`db:"stock"`
 	CreatedAt       time.Time  		`db:"createdAt" `
 	CreatedBy     	uuid.UUID   	`db:"createdBy"`
 	UpdatedAt       null.Time   	`db:"updatedAt"`

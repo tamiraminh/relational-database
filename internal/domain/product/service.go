@@ -13,6 +13,7 @@ type ProductService interface {
 	Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error)
 	SoftDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
 	HardDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
+	ReadPagination(limit int, offset int) (products []Product, err error)
 
 }
 
@@ -115,3 +116,14 @@ func (s *ProductServiceImpl) HardDelete(id uuid.UUID, userID uuid.UUID) (product
 
 	return
 }
+
+
+func (s *ProductServiceImpl) ReadPagination(limit int, page int) (products []Product,err error){
+	products, err = s.ProductRepository.ReadPagination(limit, page)
+	if err != nil {
+		return
+	}
+
+	return
+}
+	

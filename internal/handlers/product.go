@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/evermos/boilerplate-go/internal/domain/product"
 	"github.com/evermos/boilerplate-go/shared/failure"
@@ -32,6 +33,7 @@ func (h *ProductHandler) Router(r chi.Router) {
 		r.Put("/{id}", h.UpdateProduct)
 		r.Delete("/", h.SoftDeleteProduct)
 		r.Delete("/hard", h.HardDeleteProduct)
+		r.Get("/pagination", h.ReadPagination)
 
 
 	})
@@ -128,13 +130,36 @@ func (h *ProductHandler) HardDeleteProduct(w http.ResponseWriter, r *http.Reques
 	}
 
 
-	foo, err := h.ProductService.HardDelete(id, userId)
+	product, err := h.ProductService.HardDelete(id, userId)
 	if err != nil {
 		response.WithError(w, err)
 		return
 	}
 
-	response.WithJSON(w, http.StatusOK, foo)
+	response.WithJSON(w, http.StatusOK, product)
+}
+
+func (h *ProductHandler) ReadPagination(w http.ResponseWriter, r *http.Request){
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	products, err := h.ProductService.ReadPagination(limit, page - 1)
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	response.WithJSON(w, http.StatusOK, products)
+
 }
 
 
