@@ -14,6 +14,7 @@ type Product struct {
 	Id   			uuid.UUID		`db:"id"`
 	BrandId 		uuid.UUID		`db:"brandId"`
 	Name			string	 		`db:"name"`
+	Stock			int	 		`db:"stock"`
 	CreatedAt       time.Time  		`db:"createdAt" `
 	CreatedBy     	uuid.UUID   	`db:"createdBy"`
 	UpdatedAt       null.Time   	`db:"updatedAt"`
@@ -49,6 +50,7 @@ func (p Product) NewFromRequestFormat(req ProductRequestFormat) (newProduct Prod
 		Id:         productId,
 		BrandId: 	req.BrandId,
 		Name:       req.Name,
+		Stock: 		req.Stock,	
 		CreatedAt:  time.Now(),
 		CreatedBy:  req.UserId,
 		UpdatedAt: 	null.TimeFrom(time.Now()),
@@ -86,6 +88,7 @@ func (p Product) ToResponseFormat() ProductResponseFormat {
 		Id: 			p.Id,
 		BrandId: 		p.BrandId,
 		Name: 			p.Name,
+		Stock:			p.Stock,
 		CreatedAt:      p.CreatedAt,
 		CreatedBy:     	p.CreatedBy,
 		UpdatedAt:      p.UpdatedAt,
@@ -114,6 +117,7 @@ func (p *Product) Update(req ProductRequestFormat, userID uuid.UUID) (err error)
 	p.Variants = variants
 	p.BrandId = req.BrandId
 	p.Name = req.Name
+	p.Stock = req.Stock
 	p.UpdatedAt = null.TimeFrom(time.Now())
 	p.UpdatedBy = nuuid.From(userID)
 
@@ -125,6 +129,7 @@ type ProductRequestFormat struct {
 	UserId 			uuid.UUID				`json:"userId" validate:"required"`
 	BrandId 		uuid.UUID				`json:"brandId" validate:"required"`
 	Name			string	 				`json:"name" validate:"required"`
+	Stock			int	 					`json:"stock" validate:"required"`
 	Variants       []VariantRequestFormat 	`json:"variants" validate:"required,dive,required"`
 }
 
@@ -133,6 +138,7 @@ type ProductResponseFormat struct {
 	Id   			uuid.UUID				`json:"id"`
 	BrandId 		uuid.UUID				`json:"brandId"`
 	Name			string	 				`json:"name"`
+	Stock			int	 					`json:"stock"`
 	Variants        []VariantResponseFormat `json:"variants"`
 	CreatedAt       time.Time  				`json:"createdAt" `
 	CreatedBy     	uuid.UUID   			`json:"createdBy"`
@@ -148,6 +154,7 @@ type Variant struct {
 	ProductId       uuid.UUID 		`db:"productId" validate:"required"`
 	Name         	string    		`db:"name" validate:"required"`
 	Price 			float64    		`db:"price" validate:"required"`
+	Stock 			int    			`db:"stock" validate:"required"`
 	CreatedAt       time.Time  		`db:"createdAt" `
 	CreatedBy     	uuid.UUID   	`db:"createdBy"`
 	UpdatedAt       null.Time   	`db:"updatedAt"`
@@ -167,6 +174,7 @@ func (v Variant) NewFromRequestFormat(req VariantRequestFormat, productID uuid.U
 		ProductId: 	productID,
 		Name: 		req.Name,
 		Price: 		req.Price,
+		Stock: 		req.Stock,
 		CreatedAt:  time.Now(),
 		CreatedBy:  userID,
 		UpdatedAt: 	null.TimeFrom(time.Now()),
@@ -183,6 +191,7 @@ func (v *Variant) ToResponseFormat() VariantResponseFormat {
 		ProductId: 	v.ProductId,
 		Name: 		v.Name,
 		Price: 		v.Price,
+		Stock: 		v.Stock,
 		CreatedAt: 	v.CreatedAt,
 		CreatedBy: 	v.CreatedBy,
 		UpdatedAt: 	v.UpdatedAt,
@@ -196,6 +205,7 @@ func (v *Variant) ToResponseFormat() VariantResponseFormat {
 type VariantRequestFormat struct {
 	Name 		string		`json:"name" validate:"required"`
 	Price		float64		`json:"price" validate:"required"`
+	Stock		int			`json:"stock" validate:"required"`
 }
 
 
@@ -204,6 +214,7 @@ type VariantResponseFormat struct {
 	ProductId       uuid.UUID 		`json:"productId"`
 	Name         	string    		`json:"name"`
 	Price 			float64    		`json:"price"`
+	Stock			int				`json:"stock"`
 	CreatedAt       time.Time  		`json:"createdAt" `
 	CreatedBy     	uuid.UUID   	`json:"createdBy"`
 	UpdatedAt       null.Time   	`json:"updatedAt,omitempty"`
