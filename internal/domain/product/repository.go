@@ -15,6 +15,7 @@ import (
 var (
 	productQueries = struct {
 		selectProduct				 string
+		selectProductStatusSorted	 string
 		selectVariant				 string
 		insertProduct                string
 		insertVariantBulk            string
@@ -33,6 +34,31 @@ var (
 			product.deletedAt,
 			product.deletedBy
 		FROM product 
+		`,
+		selectProductStatusSorted: `
+		SELECT 
+			b.name AS brandName,
+			p.name AS productName,
+			v.name AS variantName,
+			i.url AS image,
+			v.price AS price,
+			v.stock AS stock,
+			CASE 
+				WHEN v.stock > 0 THEN 'Ready'
+				ELSE 'Out of Stock'
+			END AS status,
+			p.updatedBy AS updatedBy
+		FROM 
+			Brand b
+		JOIN 
+			Product p ON b.id = p.brandId
+		JOIN 
+			Variant v ON p.id = v.productId
+		JOIN 
+			Image i ON v.id = i.variantId
+		ORDER BY 
+			p.createdAt DESC,
+			v.stock DESC;
 		`,
 		selectVariant: `
 		SELECT
@@ -128,6 +154,7 @@ type ProductRepository interface {
 	ExistsByID(id uuid.UUID) (exists bool, err error)
 	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
 	ReadPagination(limit int, offset int) (products []Product, err error)
+	ReadStatusSorted() (products []ProductStatus, err error)
 }
 
 
@@ -215,11 +242,11 @@ func (r *ProductRepositoryMySQL) Update(product Product) (err error) {
 		return
 	}
 
-	// transactionally update the Foo
+	// transactionally update the product
 	// strategy:
-	// 1. delete all the Foo's items
-	// 2. create a new set of Foo's items
-	// 3. update the Foo
+	// 1. delete all the product's items
+	// 2. create a new set of product's items
+	// 3. update the product
 	return r.DB.WithTransaction(func(tx *sqlx.Tx, e chan error) {
 		if err := r.txDeleteVariants(tx, product.Id); err != nil {
 			e <- err
@@ -252,6 +279,17 @@ func (r *ProductRepositoryMySQL) ReadPagination(limit int, page int) (products [
 	return
 }
 
+func (r *ProductRepositoryMySQL) ReadStatusSorted() (products []ProductStatus, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		productQueries.selectProductStatusSorted)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
+}
 
 
 

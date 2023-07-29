@@ -34,6 +34,7 @@ func (h *ProductHandler) Router(r chi.Router) {
 		r.Delete("/", h.SoftDeleteProduct)
 		r.Delete("/hard", h.HardDeleteProduct)
 		r.Get("/pagination", h.ReadPagination)
+		r.Get("/statussorted", h.ReadStatusSorted)
 
 
 	})
@@ -159,8 +160,16 @@ func (h *ProductHandler) ReadPagination(w http.ResponseWriter, r *http.Request){
 	}
 
 	response.WithJSON(w, http.StatusOK, products)
-
 }
 
+func (h *ProductHandler) ReadStatusSorted(w http.ResponseWriter, r *http.Request){
+	products, err := h.ProductService.ReadStatusSorted()
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	response.WithJSON(w, http.StatusOK, products)
+}
 
 
