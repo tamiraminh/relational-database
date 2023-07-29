@@ -8,6 +8,7 @@ import (
 	"github.com/evermos/boilerplate-go/shared/failure"
 	"github.com/evermos/boilerplate-go/transport/http/response"
 	"github.com/go-chi/chi"
+	"github.com/gofrs/uuid"
 )
 
 
@@ -28,7 +29,7 @@ func (h *ProductHandler) Router(r chi.Router) {
 		// })
 		
 		r.Post("/", h.CreateProduct)
-
+		r.Put("/{id}", h.UpdateProduct)
 
 	})
 }
@@ -55,5 +56,31 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
+func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	idString := chi.URLParam(r, "id")
+	id, err := uuid.FromString(idString)
+	if err != nil {
+		response.WithError(w, failure.BadRequest(err))
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	var requestFormat product.ProductRequestFormat
+	err = decoder.Decode(&requestFormat)
+	if err != nil {
+		response.WithError(w, failure.BadRequest(err))
+		return
+	}
+
+
+	product, err := h.ProductService.Update(id, requestFormat)
+	if err != nil {
+		response.WithError(w, err)
+		return
+	}
+
+	response.WithJSON(w, http.StatusOK, product)
+}
 
 

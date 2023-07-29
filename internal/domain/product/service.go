@@ -4,11 +4,14 @@ import (
 	"github.com/evermos/boilerplate-go/configs"
 	"github.com/evermos/boilerplate-go/event/producer"
 	"github.com/evermos/boilerplate-go/shared/failure"
+	"github.com/gofrs/uuid"
 )
 
 
 type ProductService interface {
 	Create(requestFormat ProductRequestFormat) (product Product, err error)
+	Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error)
+
 }
 
 
@@ -44,5 +47,22 @@ func (s *ProductServiceImpl) Create(requestFormat ProductRequestFormat) (product
 	}
 
 
+	return
+}
+
+
+// Update updates a Foo.
+func (s *ProductServiceImpl) Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error) {
+	product, err = s.ProductRepository.ResolveByID(id)
+	if err != nil {
+		return
+	}
+
+	err = product.Update(requestFormat, requestFormat.UserId)
+	if err != nil {
+		return
+	}
+
+	err = s.ProductRepository.Update(product)
 	return
 }

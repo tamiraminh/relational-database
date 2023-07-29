@@ -131,8 +131,8 @@ type ProductRequestFormat struct {
 
 type ProductResponseFormat struct {
 	Id   			uuid.UUID				`json:"id"`
-	BrandId 		uuid.UUID				`json:"name"`
-	Name			string	 				`json:"type"`
+	BrandId 		uuid.UUID				`json:"brandId"`
+	Name			string	 				`json:"name"`
 	Variants        []VariantResponseFormat `json:"variants"`
 	CreatedAt       time.Time  				`json:"createdAt" `
 	CreatedBy     	uuid.UUID   			`json:"createdBy"`
