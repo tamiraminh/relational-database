@@ -11,6 +11,8 @@ import (
 type ProductService interface {
 	Create(requestFormat ProductRequestFormat) (product Product, err error)
 	Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error)
+	SoftDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
+
 
 }
 
@@ -51,7 +53,6 @@ func (s *ProductServiceImpl) Create(requestFormat ProductRequestFormat) (product
 }
 
 
-// Update updates a Foo.
 func (s *ProductServiceImpl) Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error) {
 	product, err = s.ProductRepository.ResolveByID(id)
 	if err != nil {
@@ -59,6 +60,29 @@ func (s *ProductServiceImpl) Update(id uuid.UUID, requestFormat ProductRequestFo
 	}
 
 	err = product.Update(requestFormat, requestFormat.UserId)
+	if err != nil {
+		return
+	}
+
+	err = s.ProductRepository.Update(product)
+	return
+}
+
+
+func (s *ProductServiceImpl) SoftDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error) {
+	product, err = s.ProductRepository.ResolveByID(id)
+	if err != nil {
+		return
+	}
+
+	variants, err := s.ProductRepository.ResolveVariantsByProductIDs([]uuid.UUID{product.Id})
+	if err != nil {
+		return product, err
+	}
+
+	product.AttachVariants(variants)
+
+	err = product.SoftDelete(userID)
 	if err != nil {
 		return
 	}

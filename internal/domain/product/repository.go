@@ -15,6 +15,7 @@ import (
 var (
 	productQueries = struct {
 		selectProduct				 string
+		selectVariant				 string
 		insertProduct                string
 		insertVariantBulk            string
 		insertVariantBulkPlaceholder string
@@ -31,6 +32,20 @@ var (
 			product.deletedAt,
 			product.deletedBy
 		FROM product 
+		`,
+		selectVariant: `
+		SELECT
+			id,
+			productId,
+			name,
+			price,
+			createdAt,
+			createdBy,
+			updatedAt,
+			updatedBy,
+			deletedAt,
+			deletedBy
+		FROM variant
 		`,
 		insertProduct: `
 			INSERT INTO product (
@@ -105,7 +120,7 @@ type ProductRepository interface {
 	// ReadProduct() ( products []Product, err error)
 	ResolveByID(id uuid.UUID) (product Product, err error)
 	ExistsByID(id uuid.UUID) (exists bool, err error)
-	// ResolveItemsByProductIDs(ids []uuid.UUID) (fooItems []FooItem, err error)
+	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
 }
 
 
@@ -311,5 +326,26 @@ func (r *ProductRepositoryMySQL) txUpdate(tx *sqlx.Tx, product Product) (err err
 	return
 }
 
+
+
+func (r *ProductRepositoryMySQL) ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error) {
+	if len(ids) == 0 {
+		return
+	}
+
+	query, args, err := sqlx.In(productQueries.selectVariant+" WHERE variant.productId IN (?)", ids)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	err = r.DB.Read.Select(&variants, query, args...)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	return
+}
 
 
