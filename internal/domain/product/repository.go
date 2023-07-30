@@ -44,7 +44,7 @@ var (
 			v.price AS price,
 			v.stock AS stock,
 			CASE 
-				WHEN v.stock > 0 THEN 'Ready'
+				WHEN p.stock > 0 THEN 'Ready'
 				ELSE 'Out of Stock'
 			END AS status,
 			p.updatedBy AS updatedBy
@@ -56,9 +56,6 @@ var (
 			Variant v ON p.id = v.productId
 		JOIN 
 			Image i ON v.id = i.variantId
-		ORDER BY 
-			p.createdAt DESC,
-			v.stock DESC;
 		`,
 		selectVariant: `
 		SELECT
@@ -149,12 +146,15 @@ type ProductRepository interface {
 	Create(product Product) (err error)
 	Update(product Product) (err error)
 	HardDelete(id uuid.UUID) (err error)
-	// ReadProduct() ( products []Product, err error)
 	ResolveByID(id uuid.UUID) (product Product, err error)
 	ExistsByID(id uuid.UUID) (exists bool, err error)
 	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
 	ReadPagination(limit int, offset int) (products []Product, err error)
 	ReadStatusSorted() (products []ProductStatus, err error)
+	ReadByBrandName(brandName string) (products []ProductStatus, err error)
+	ReadByProductName(productName string) (products []ProductStatus, err error)
+	ReadByVariantName(variantName string) (products []ProductStatus, err error)
+	ReadByStatus(status string) (products []ProductStatus, err error)
 }
 
 
@@ -282,7 +282,7 @@ func (r *ProductRepositoryMySQL) ReadPagination(limit int, page int) (products [
 func (r *ProductRepositoryMySQL) ReadStatusSorted() (products []ProductStatus, err error) {
 	err = r.DB.Read.Select(
 		&products,
-		productQueries.selectProductStatusSorted)
+		productQueries.selectProductStatusSorted+" ORDER BY p.createdAt DESC,v.stock DESC; ")
 	if err != nil && err == sql.ErrNoRows {
 		err = failure.NotFound("products")
 		logger.ErrorWithStack(err)
@@ -291,6 +291,53 @@ func (r *ProductRepositoryMySQL) ReadStatusSorted() (products []ProductStatus, e
 	return
 }
 
+func (r *ProductRepositoryMySQL) ReadByBrandName(brandName string) (products []ProductStatus, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		"WITH productDetails AS(" +productQueries.selectProductStatusSorted+ ") SELECT * FROM productDetails WHERE brandName = ? ORDER BY stock DESC;", brandName)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
+}
+
+func (r *ProductRepositoryMySQL) ReadByProductName(productName string) (products []ProductStatus, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		"WITH productDetails AS(" +productQueries.selectProductStatusSorted+ ") SELECT * FROM productDetails WHERE productName = ? ORDER BY stock DESC;", productName)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
+}
+
+func (r *ProductRepositoryMySQL) ReadByVariantName(variantName string) (products []ProductStatus, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		"WITH productDetails AS(" +productQueries.selectProductStatusSorted+ ") SELECT * FROM productDetails WHERE variantName = ? ORDER BY stock DESC;", variantName)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
+}
+
+func (r *ProductRepositoryMySQL) ReadByStatus(status string) (products []ProductStatus, err error) {
+	err = r.DB.Read.Select(
+		&products,
+		"WITH productDetails AS(" +productQueries.selectProductStatusSorted+ ") SELECT * FROM productDetails WHERE status = ? ORDER BY stock DESC;", status)
+	if err != nil && err == sql.ErrNoRows {
+		err = failure.NotFound("products")
+		logger.ErrorWithStack(err)
+		return
+	}
+	return
+}
 
 
 func (r *ProductRepositoryMySQL) txCreate(tx *sqlx.Tx, product Product) (err error) {

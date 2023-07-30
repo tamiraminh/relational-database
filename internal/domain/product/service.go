@@ -15,6 +15,10 @@ type ProductService interface {
 	HardDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error)
 	ReadPagination(limit int, offset int) (products []Product, err error)
 	ReadStatusSorted() (products []ProductStatus, err error) 
+	ReadByBrandName(brandName string) (products []ProductStatus, err error)
+	ReadByProductName(productName string) (products []ProductStatus, err error)
+	ReadByVariantName(variantName string) (products []ProductStatus, err error)
+	ReadByStatus(status string) (products []ProductStatus, err error)
 
 }
 
@@ -136,3 +140,44 @@ func (s *ProductServiceImpl) ReadStatusSorted() (products []ProductStatus,err er
 
 	return
 }
+
+
+func (s *ProductServiceImpl) ReadByBrandName(brandName string) (products []ProductStatus,err error){
+	products, err = s.ProductRepository.ReadByBrandName(brandName)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+
+func (s *ProductServiceImpl) ReadByProductName(productName string) (products []ProductStatus,err error){
+	products, err = s.ProductRepository.ReadByProductName(productName)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *ProductServiceImpl) ReadByVariantName(variantName string) (products []ProductStatus,err error){
+	products, err = s.ProductRepository.ReadByVariantName(variantName)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *ProductServiceImpl) ReadByStatus(status string) (products []ProductStatus,err error){
+	products, err = s.ProductRepository.ReadByStatus(status)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+
+

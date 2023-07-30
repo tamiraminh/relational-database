@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -35,6 +36,7 @@ func (h *ProductHandler) Router(r chi.Router) {
 		r.Delete("/hard", h.HardDeleteProduct)
 		r.Get("/pagination", h.ReadPagination)
 		r.Get("/statussorted", h.ReadStatusSorted)
+		r.Get("/by", h.ReadBy)
 
 
 	})
@@ -173,3 +175,45 @@ func (h *ProductHandler) ReadStatusSorted(w http.ResponseWriter, r *http.Request
 }
 
 
+func (h *ProductHandler) ReadBy(w http.ResponseWriter, r *http.Request){
+	brandName := r.URL.Query().Get("brandName")
+	productName := r.URL.Query().Get("productName")
+	variantName := r.URL.Query().Get("variantName")
+	status := r.URL.Query().Get("status")
+
+	if len(r.URL.Query()) > 1 {
+		response.WithError(w, errors.New("params must only 1"))
+	}
+
+	products := []product.ProductStatus{}
+	var err error
+	switch {
+		case brandName != "":
+			products, err = h.ProductService.ReadByBrandName(brandName)
+			if err != nil {
+				response.WithError(w, err)
+				return
+			}
+		case productName != "":
+			products, err = h.ProductService.ReadByProductName(productName)
+			if err != nil {
+				response.WithError(w, err)
+				return
+			}
+		case variantName != "":
+			products, err = h.ProductService.ReadByVariantName(variantName)
+			if err != nil {
+				response.WithError(w, err)
+				return
+			}
+		case status != "":
+			products, err = h.ProductService.ReadByStatus(status)
+			if err != nil {
+				response.WithError(w, err)
+				return
+			}
+	}
+
+
+	response.WithJSON(w, http.StatusOK, products)
+}
