@@ -176,6 +176,16 @@ func (s *ProductServiceImpl) ReadStatusSorted() (products []ProductStatus,err er
 		return
 	}
 
+	for i := 0 ; i < len(products) ; i++ {
+		images, err := s.ProductRepository.ResolveImagesByVariantID(products[i].VariantId)
+		if err != nil {
+			return products, err
+		}
+		products[i].AttachImages(images)
+
+	}
+
+	
 	return
 }
 
@@ -184,6 +194,15 @@ func (s *ProductServiceImpl) ReadByBrandName(brandName string) (products []Produ
 	products, err = s.ProductRepository.ReadByBrandName(brandName)
 	if err != nil {
 		return
+	}
+
+	for i := 0 ; i < len(products) ; i++ {
+		images, err := s.ProductRepository.ResolveImagesByVariantID(products[i].VariantId)
+		if err != nil {
+			return products, err
+		}
+		products[i].AttachImages(images)
+
 	}
 
 	return
@@ -196,6 +215,15 @@ func (s *ProductServiceImpl) ReadByProductName(productName string) (products []P
 		return
 	}
 
+	for i := 0 ; i < len(products) ; i++ {
+		images, err := s.ProductRepository.ResolveImagesByVariantID(products[i].VariantId)
+		if err != nil {
+			return products, err
+		}
+		products[i].AttachImages(images)
+
+	}
+
 	return
 }
 
@@ -205,6 +233,15 @@ func (s *ProductServiceImpl) ReadByVariantName(variantName string) (products []P
 		return
 	}
 
+	for i := 0 ; i < len(products) ; i++ {
+		images, err := s.ProductRepository.ResolveImagesByVariantID(products[i].VariantId)
+		if err != nil {
+			return products, err
+		}
+		products[i].AttachImages(images)
+
+	}
+
 	return
 }
 
@@ -212,6 +249,15 @@ func (s *ProductServiceImpl) ReadByStatus(status string) (products []ProductStat
 	products, err = s.ProductRepository.ReadByStatus(status)
 	if err != nil {
 		return
+	}
+
+	for i := 0 ; i < len(products) ; i++ {
+		images, err := s.ProductRepository.ResolveImagesByVariantID(products[i].VariantId)
+		if err != nil {
+			return products, err
+		}
+		products[i].AttachImages(images)
+
 	}
 
 	return

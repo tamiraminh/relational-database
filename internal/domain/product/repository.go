@@ -21,6 +21,7 @@ var (
 		insertVariantBulk            string
 		insertVariantBulkPlaceholder string
 		updateProduct				 string	
+		selectImages				 string
 	}{	selectProduct: `
 		SELECT
 			product.id,
@@ -40,7 +41,7 @@ var (
 			b.name AS brandName,
 			p.name AS productName,
 			v.name AS variantName,
-			i.url AS image,
+			v.id  AS variantId,
 			v.price AS price,
 			v.stock AS stock,
 			CASE 
@@ -54,8 +55,6 @@ var (
 			Product p ON b.id = p.brandId
 		JOIN 
 			Variant v ON p.id = v.productId
-		JOIN 
-			Image i ON v.id = i.variantId
 		`,
 		selectVariant: `
 		SELECT
@@ -138,6 +137,10 @@ var (
 				deletedBy = :deletedBy
 			WHERE id = :id 
 		`,
+
+		selectImages: `
+		SELECT url FROM image
+		`,
 	}
 )
 
@@ -150,6 +153,7 @@ type ProductRepository interface {
 	ExistsByID(id uuid.UUID) (exists bool, err error)
 	ExistsByUserID(userId uuid.UUID) (exists bool, err error)
 	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
+	ResolveImagesByVariantID(ids uuid.UUID) (images []string, err error)
 	ReadPagination(limit int, offset int) (products []Product, err error)
 	ReadStatusSorted() (products []ProductStatus, err error)
 	ReadByBrandName(brandName string) (products []ProductStatus, err error)
@@ -459,6 +463,28 @@ func (r *ProductRepositoryMySQL) ResolveVariantsByProductIDs(ids []uuid.UUID) (v
 	}
 
 	err = r.DB.Read.Select(&variants, query, args...)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	return
+}
+
+
+
+func (r *ProductRepositoryMySQL) ResolveImagesByVariantID(ids uuid.UUID) (images []string, err error) {
+	if len(ids) == 0 {
+		return
+	}
+
+	query, args, err := sqlx.In(productQueries.selectImages+" WHERE image.variantId = ?", ids)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	err = r.DB.Read.Select(&images, query, args...)
 	if err != nil {
 		logger.ErrorWithStack(err)
 		return

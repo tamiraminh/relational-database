@@ -223,22 +223,13 @@ type VariantResponseFormat struct {
 	DeletedBy     	nuuid.NUUID		`json:"deletedBy,omitempty"`
 }
 
-// b.name AS brand_name,
-// 		p.name AS product_name,
-// 		v.name AS variant_name,
-// 		i.url AS image,
-// 		v.price AS variant_price,
-// 		v.stock AS variant_stock,
-// 		CASE 
-// 			WHEN v.stock > 0 THEN 'Ready'
-// 			ELSE 'Out of Stock'
-// 		END AS product_status,
-// 		p.updatedBy AS product_updatedBy
+
 type ProductStatus struct {
 	BrandName 		string		`db:"brandName"`
 	ProductName 	string		`db:"productName"`
 	VariantName 	string		`db:"variantName"`
-	Image 			string		`db:"image"`
+	VariantId 		uuid.UUID	`db:"variantId"`
+	Image 			[]string	`db:"-"`
 	Price 			string		`db:"price"`
 	Stock			string		`db:"stock"`
 	Status 			string		`db:"status"`
@@ -249,17 +240,31 @@ func (ps ProductStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(ps.ToResponseFormat())
 }
 
+func (ps *ProductStatus) AttachImages(images []string) ProductStatus {
+	ps.Image = images
+	return *ps
+
+}
+
+
 func (ps *ProductStatus) ToResponseFormat() ProductStatusResponseFormat {
-	return ProductStatusResponseFormat{
+	resp :=  ProductStatusResponseFormat{
 		BrandName: 		ps.BrandName,
 		ProductName: 	ps.ProductName,
 		VariantName:  	ps.VariantName,
-		Image: 			ps.Image,		
+		Image: 			make([]string, 0),		
 		Price: 			ps.Price,		
 		Stock: 			ps.Stock,		
 		Status: 		ps.Status,		
 		UpdatedBy: 		ps.UpdatedBy,		
 	}
+
+	
+	resp.Image = append(resp.Image, ps.Image...)
+
+	
+
+	return resp
 }
 
 
@@ -268,7 +273,7 @@ type ProductStatusResponseFormat struct {
 	BrandName 		string		`json:"brandName"`
 	ProductName 	string		`json:"productName"`
 	VariantName 	string		`json:"variantName"`
-	Image 			string		`json:"image"`
+	Image 			[]string	`json:"image"`
 	Price 			string		`json:"price"`
 	Stock			string		`json:"stock"`
 	Status 			string		`json:"status"`
