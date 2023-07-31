@@ -148,6 +148,7 @@ type ProductRepository interface {
 	HardDelete(id uuid.UUID) (err error)
 	ResolveByID(id uuid.UUID) (product Product, err error)
 	ExistsByID(id uuid.UUID) (exists bool, err error)
+	ExistsByUserID(userId uuid.UUID) (exists bool, err error)
 	ResolveVariantsByProductIDs(ids []uuid.UUID) (variants []Variant, err error)
 	ReadPagination(limit int, offset int) (products []Product, err error)
 	ReadStatusSorted() (products []ProductStatus, err error)
@@ -176,6 +177,19 @@ func (r *ProductRepositoryMySQL) ExistsByID(id uuid.UUID) (exists bool, err erro
 	err = r.DB.Read.Get(
 		&exists,
 		"SELECT COUNT(id) FROM product WHERE product.id = ?",
+		id.String())
+	if err != nil {
+		logger.ErrorWithStack(err)
+	}
+
+	return
+}
+
+
+func (r *ProductRepositoryMySQL) ExistsByUserID(id uuid.UUID) (exists bool, err error) {
+	err = r.DB.Read.Get(
+		&exists,
+		"SELECT COUNT(id) FROM user WHERE user.id = ?",
 		id.String())
 	if err != nil {
 		logger.ErrorWithStack(err)

@@ -4,6 +4,7 @@ import (
 	"github.com/evermos/boilerplate-go/configs"
 	"github.com/evermos/boilerplate-go/event/producer"
 	"github.com/evermos/boilerplate-go/shared/failure"
+	"github.com/evermos/boilerplate-go/shared/logger"
 	"github.com/gofrs/uuid"
 )
 
@@ -39,6 +40,18 @@ func ProvideProductServiceImpl(productRepository ProductRepository, producer pro
 
 
 func (s *ProductServiceImpl) Create(requestFormat ProductRequestFormat) (product Product, err error) {
+	exists , err := s.ProductRepository.ExistsByUserID(requestFormat.UserId)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	if !exists {
+		err = failure.NotFound("invalid user operation, maybe user not have access to do this")
+		logger.ErrorWithStack(err)
+		return
+	}
+
 	product, err = product.NewFromRequestFormat(requestFormat)
 	if err != nil {
 		return
@@ -60,6 +73,18 @@ func (s *ProductServiceImpl) Create(requestFormat ProductRequestFormat) (product
 
 
 func (s *ProductServiceImpl) Update(id uuid.UUID, requestFormat ProductRequestFormat) (product Product, err error) {
+	exists , err := s.ProductRepository.ExistsByUserID(requestFormat.UserId)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	if !exists {
+		err = failure.NotFound("invalid user operation, maybe user not have access to do this")
+		logger.ErrorWithStack(err)
+		return
+	}
+
 	product, err = s.ProductRepository.ResolveByID(id)
 	if err != nil {
 		return
@@ -101,6 +126,19 @@ func (s *ProductServiceImpl) SoftDelete(id uuid.UUID, userID uuid.UUID) (product
 
 
 func (s *ProductServiceImpl) HardDelete(id uuid.UUID, userID uuid.UUID) (product Product, err error) {
+	exists , err := s.ProductRepository.ExistsByUserID(userID)
+	if err != nil {
+		logger.ErrorWithStack(err)
+		return
+	}
+
+	if !exists {
+		err = failure.NotFound("invalid user operation, maybe user not have access to do this")
+		logger.ErrorWithStack(err)
+		return
+	}
+
+
 	product, err = s.ProductRepository.ResolveByID(id)
 	if err != nil {
 		return
