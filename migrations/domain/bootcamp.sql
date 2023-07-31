@@ -122,7 +122,7 @@ UNLOCK TABLES;
 /*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER update_variant_updatedAt
-BEFORE UPDATE ON Product
+AFTER UPDATE ON Product
 FOR EACH ROW
 BEGIN
   UPDATE Variant
@@ -275,32 +275,6 @@ LOCK TABLES `variant` WRITE;
 INSERT INTO `variant` VALUES ('55a2eb7d-e135-405f-b8fd-682cc84ca6ee','8020c4d0-3eac-406a-b75e-ad8a68b1e691','Black',149.99,10,'2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882',NULL,NULL),('59b503ac-d683-48a9-9be9-62313519f59f','8020c4d0-3eac-406a-b75e-ad8a68b1e691','Blue',129.99,10,'2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882',NULL,NULL),('81b49b33-bfc3-4358-981c-058849a633eb','8020c4d0-3eac-406a-b75e-ad8a68b1e691','Red',129.99,10,'2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-29 13:27:58','2e84a97e-6d18-4d71-9bf9-8e2074b6a882',NULL,NULL),('90919957-8087-4f46-a35b-c9a578f8b95b','645bfa78-7529-4dfa-8c8c-8009ec3853d7','Black',19.99,18,'2023-07-29 15:36:12','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-31 13:35:43','1d50c7ab-2363-45a6-8e91-c86242f72d27',NULL,NULL),('a42c9e80-8a8a-472a-ae1a-3c5529710429','03aa6245-49b7-4050-98e4-5fd1f3769077','Men Black',129.99,10,'2023-07-29 13:29:12','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-31 13:25:44','2e84a97e-6d18-4d71-9bf9-8e2074b6a882',NULL,NULL),('bcbefdb4-14a3-4335-a2dc-3bbecad75c0d','03aa6245-49b7-4050-98e4-5fd1f3769077','Woman Pink',129.99,10,'2023-07-29 13:29:12','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-31 13:25:44','2e84a97e-6d18-4d71-9bf9-8e2074b6a882',NULL,NULL),('cdec9878-f354-4a61-a421-c94797a11c78','645bfa78-7529-4dfa-8c8c-8009ec3853d7','Blue',19.99,12,'2023-07-29 15:36:12','2e84a97e-6d18-4d71-9bf9-8e2074b6a882','2023-07-31 13:35:43','1d50c7ab-2363-45a6-8e91-c86242f72d27',NULL,NULL);
 /*!40000 ALTER TABLE `variant` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = cp850 */ ;
-/*!50003 SET character_set_results = cp850 */ ;
-/*!50003 SET collation_connection  = cp850_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER update_product_stock
-AFTER UPDATE ON variant
-FOR EACH ROW
-BEGIN
-  UPDATE product
-  SET stock = (
-    SELECT SUM(stock) 
-    FROM variant 
-    WHERE variant.productId = product.id
-  )
-  WHERE product.id = NEW.productId;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `variantwarehouse`
@@ -374,4 +348,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-31 16:23:48
+-- Dump completed on 2023-07-31 16:36:58
